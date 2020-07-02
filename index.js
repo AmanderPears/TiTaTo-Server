@@ -4,12 +4,12 @@ app.use(cors());
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 
-app.get('/', (req, res) => {
-    // res.sendFile(__dirname + '/index.html');
-    res.setHeader('Content-type','text/html')
-    res.write("server running");
-    res.end();
-});
+// app.get('/', (req, res) => {
+//     // res.sendFile(__dirname + '/index.html');
+//     res.setHeader('Content-type','text/html')
+//     res.write("server running");
+//     res.end();
+// });
 
 // var client = {
 //     socket: null,
