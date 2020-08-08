@@ -1,27 +1,26 @@
-var cors = require('cors');
-var app = require('express')();
+var cors = require('cors'); //for corss-origin requests
+var app = require('express')(); //enable http request
 app.use(cors());
 var http = require('http').createServer(app);
-var io = require('socket.io')(http);
+var io = require('socket.io')(http); //for socket
 
+//default route
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-// var client = {
-//     socket: null,
-//     nickname: null
-// };
+//clients list that connect to the server
 var clients = [];
 
+//on connection event hanlder
 io.on('connection', (socket) => {
 
     console.log(socket.id + ' connected');
 
     var client = {
-        id: socket.id,
-        name: socket.id,
-        busy: false
+        id: socket.id, //client id
+        name: socket.id, //client name
+        busy: false //client is in-game
     };
 
     clients.push(client);
@@ -49,7 +48,7 @@ io.on('connection', (socket) => {
     //     socket.emit('chatLog', msgLog);
     // });
 
-    // nickname
+    // set nickname for a client if they provide it
     socket.on('name', n => {
         let msg = '';
         if (n) {
@@ -60,12 +59,14 @@ io.on('connection', (socket) => {
         } else {
             msg = `Your name: ${client.name}`;
         }
-
+        //global emit all messages
         socket.emit('server', {
             event: 'serverMsg',
             name: 'Server',
             msg: msg
         });
+        
+        //emit client name
         socket.emit('name', client.name);
     })
 
@@ -96,18 +97,13 @@ io.on('connection', (socket) => {
         io.to(id).emit('inviteReceived', client);
     });
 
+    //reponse to a game invite
     socket.on('gameInviteResponse', data => {
         io.to(data.id).emit('gameInviteResponse', data.res);
 
         //set busy if invite accepted
         if (data.res) {
-
-            // for (let c in clients) {
-            //     if (c.id === data.id || c.id === client.id) { 
-            //         c.busy = true;
-            //     }
-            // }
-
+            
             for (let i = 0; i < clients.length; i++) {
                 if (clients[i].id === data.id || clients[i].id === client.id) {
                     clients[i].busy = true;
@@ -119,11 +115,14 @@ io.on('connection', (socket) => {
             io.emit('clientList', Array.from(clients));
         }
     });
-
+    
+    //emit game data 
     socket.on('gameData', data => {
         let res = { data: data.data };
 
         let winner;
+        
+        //winning combinations
         let matchIndex = [
             //horizontal
             [0, 1, 2], [3, 4, 5], [6, 7, 8],
@@ -144,6 +143,7 @@ io.on('connection', (socket) => {
             }
         });
 
+        //if winnner has decided
         if (winner) {
             res['winner'] = winner;
             socket.emit('gameData', res);
@@ -163,4 +163,3 @@ io.on('connection', (socket) => {
 http.listen(process.env.PORT || 3000, () => {
     console.log('listening on *:3000');
 });
-///adasdasdasdasdadasdasda
